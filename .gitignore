@@ -1,0 +1,32 @@
+# Gradle
+.gradle/
+build/
+bin/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+
+# Runtime
+run/
+logs/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Work files
+disconnect/
+texture_extract/
+*.ps1
+
+# Root duplicate jars (libs/ has the needed ones)
+/ProjectE-*.jar
+/appliedenergistics2-*.jar
+/create-*.jar
+/stationsoundsystem-*.jar

@@ -1,0 +1,43 @@
+{
+    "type": "create:mechanical_crafting",
+    "accept_mirrored": false,
+    "category": "misc",
+    "key": {
+        "W": {
+            "item": "projecte:watch_of_flowing_time"
+        },
+        "D": {
+            "item": "create:deployer"
+        },
+        "O": {
+            "item": "projecte:klein_star_omega"
+        },
+        "N": {
+            "tag": "c:ingots/netherite"
+        },
+        "P": {
+            "item": "create:precision_mechanism"
+        },
+        "B": {
+            "tag": "c:ingots/brass"
+        },
+        "S": {
+            "item": "create:schematicannon"
+        },
+        "T": {
+            "item": "projecte:transmutation_table"
+        }
+    },
+    "pattern": [
+        "WDODW",
+        "NPBPN",
+        "OBSBO",
+        "NPTPN",
+        "WDODW"
+    ],
+    "result": {
+        "count": 1,
+        "id": "emcschematicannon:emc_schematic_cannon"
+    },
+    "show_notification": false
+}

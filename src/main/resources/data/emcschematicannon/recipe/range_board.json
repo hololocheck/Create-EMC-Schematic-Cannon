@@ -1,0 +1,21 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "key": {
+        "P": {
+            "item": "minecraft:paper"
+        },
+        "S": {
+            "item": "create:schematic_and_quill"
+        }
+    },
+    "pattern": [
+        "PPP",
+        "PSP",
+        "PPP"
+    ],
+    "result": {
+        "count": 1,
+        "id": "emcschematicannon:range_board"
+    }
+}

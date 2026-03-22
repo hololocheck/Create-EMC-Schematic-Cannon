@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+    id 'net.neoforged.moddev' version '2.0.78'
+}
+
+version = project.mod_version
+group = project.mod_group_id
+
+base {
+    archivesName = project.mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories {
+    mavenCentral()
+    // Use local JARs from libs/ folder
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+neoForge {
+    version = project.neo_version
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+    }
+
+    mods {
+        "${project.mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+dependencies {
+    // Local JARs from libs/ folder (compileOnly - not bundled into output)
+    compileOnly files('libs/create-1.21.1-6.0.9.jar')
+    compileOnly files('libs/ProjectE-1.21.1-PE1.1.0.jar')
+    compileOnly files('libs/appliedenergistics2-19.2.17.jar')
+    compileOnly files('libs/jei-1.21.1-neoforge-19.27.0.340.jar')
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
