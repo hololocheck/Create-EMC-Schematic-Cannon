@@ -1,0 +1,27 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "pattern": [
+        "PSP",
+        "BRB",
+        "PSP"
+    ],
+    "key": {
+        "P": {
+            "item": "create:precision_mechanism"
+        },
+        "S": {
+            "item": "create:schematicannon"
+        },
+        "B": {
+            "tag": "c:ingots/brass"
+        },
+        "R": {
+            "item": "advancedschematicannon:range_board"
+        }
+    },
+    "result": {
+        "count": 1,
+        "id": "advancedschematicannon:enhanced_schematic_cannon"
+    }
+}

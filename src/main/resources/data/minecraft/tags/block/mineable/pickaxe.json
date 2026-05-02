@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "advancedschematicannon:emc_schematic_cannon",
+    "advancedschematicannon:enhanced_schematic_cannon",
+    "advancedschematicannon:frame_block"
+  ]
+}

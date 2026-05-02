@@ -1,8 +1,0 @@
-{
-    "variants": {
-        "facing=north": { "model": "emcschematicannon:block/emc_schematic_cannon/block" },
-        "facing=south": { "model": "emcschematicannon:block/emc_schematic_cannon/block" },
-        "facing=west":  { "model": "emcschematicannon:block/emc_schematic_cannon/block" },
-        "facing=east":  { "model": "emcschematicannon:block/emc_schematic_cannon/block" }
-    }
-}

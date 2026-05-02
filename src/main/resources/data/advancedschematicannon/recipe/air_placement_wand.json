@@ -1,0 +1,34 @@
+{
+    "type": "create:mechanical_crafting",
+    "accept_mirrored": false,
+    "category": "misc",
+    "key": {
+        "S": {
+            "item": "minecraft:stick"
+        },
+        "P": {
+            "item": "create:precision_mechanism"
+        },
+        "E": {
+            "item": "create:electron_tube"
+        },
+        "N": {
+            "item": "minecraft:ender_pearl"
+        },
+        "H": {
+            "item": "create:brass_hand"
+        }
+    },
+    "pattern": [
+        "  H  ",
+        " PNP ",
+        " PEP ",
+        "  S  ",
+        "  S  "
+    ],
+    "result": {
+        "count": 1,
+        "id": "advancedschematicannon:air_placement_wand"
+    },
+    "show_notification": false
+}

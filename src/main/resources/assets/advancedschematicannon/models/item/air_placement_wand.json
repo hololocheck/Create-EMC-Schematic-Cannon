@@ -1,0 +1,6 @@
+{
+    "parent": "minecraft:item/handheld",
+    "textures": {
+        "layer0": "advancedschematicannon:item/air_placement_wand"
+    }
+}

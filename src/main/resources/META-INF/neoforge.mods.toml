@@ -3,45 +3,45 @@ loaderVersion = "[4,)"
 license = "MIT"
 
 [[mods]]
-modId = "emcschematicannon"
-version = "1.1.0"
-displayName = "EMC Schematic Cannon"
+modId = "advancedschematicannon"
+version = "${file.jarVersion}"
+displayName = "Advanced Schematic Cannon"
 logoFile = "icon.png"
 description = '''
-An addon combining Create's Schematic Cannon with ProjectE's EMC system.
-Powered by FE energy, ultra-fast block placement, and AE2 ME storage integration.
+Create Schematicannon addon: an Enhanced Schematicannon variant with AE2 ME storage integration,
+AE2 auto-crafting for missing items, AE2 cable power input, and optional ProjectE EMC support.
 '''
 authors = "hololocheck"
 
-[[dependencies.emcschematicannon]]
+[[dependencies.advancedschematicannon]]
 modId = "neoforge"
 type = "required"
 versionRange = "[21.1,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.emcschematicannon]]
+[[dependencies.advancedschematicannon]]
 modId = "minecraft"
 type = "required"
 versionRange = "[1.21.1,1.21.2)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.emcschematicannon]]
+[[dependencies.advancedschematicannon]]
 modId = "create"
 type = "required"
 versionRange = "[0.5,)"
 ordering = "AFTER"
 side = "BOTH"
 
-[[dependencies.emcschematicannon]]
+[[dependencies.advancedschematicannon]]
 modId = "projecte"
-type = "required"
+type = "optional"
 versionRange = "[1.0,)"
 ordering = "AFTER"
 side = "BOTH"
 
-[[dependencies.emcschematicannon]]
+[[dependencies.advancedschematicannon]]
 modId = "ae2"
 type = "optional"
 versionRange = "[19.0,)"
