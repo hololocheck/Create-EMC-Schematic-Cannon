@@ -30,7 +30,10 @@ public record CannonActionPacket(BlockPos pos, Action action) implements CustomP
             StreamCodec.composite(
                     BlockPos.STREAM_CODEC, CannonActionPacket::pos,
                     ByteBufCodecs.INT.map(
-                            i -> Action.values()[i],
+                            i -> {
+                                Action[] values = Action.values();
+                                return (i >= 0 && i < values.length) ? values[i] : Action.STOP;
+                            },
                             a -> a.ordinal()
                     ), CannonActionPacket::action,
                     CannonActionPacket::new
@@ -47,6 +50,7 @@ public record CannonActionPacket(BlockPos pos, Action action) implements CustomP
     public static void handle(CannonActionPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer serverPlayer)) return;
+            if (packet.action() == null) return;
 
             BlockEntity be = serverPlayer.level().getBlockEntity(packet.pos());
             if (!(be instanceof EMCSchematicCannonBlockEntity cannon)) return;
@@ -56,6 +60,14 @@ public record CannonActionPacket(BlockPos pos, Action action) implements CustomP
                     packet.pos().getX() + 0.5,
                     packet.pos().getY() + 0.5,
                     packet.pos().getZ() + 0.5) > 64.0) {
+                return;
+            }
+
+            // 所有権チェック: 既に owner が居るキャノンを他人が乗っ取ることを防ぐ。
+            // OP は creative プレイヤー判定で許可。
+            java.util.UUID ownerId = cannon.getOwnerUUID();
+            if (ownerId != null && !ownerId.equals(serverPlayer.getUUID())
+                    && !serverPlayer.hasPermissions(2)) {
                 return;
             }
 

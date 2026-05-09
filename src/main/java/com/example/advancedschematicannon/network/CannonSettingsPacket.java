@@ -93,6 +93,12 @@ public record CannonSettingsPacket(
 
             BlockEntity be = serverPlayer.level().getBlockEntity(packet.pos);
             if (be instanceof EMCSchematicCannonBlockEntity cannon) {
+                // 所有権チェック: 他人が設定を書き換えるのを防ぐ
+                java.util.UUID ownerId = cannon.getOwnerUUID();
+                if (ownerId != null && !ownerId.equals(serverPlayer.getUUID())
+                        && !serverPlayer.hasPermissions(2)) {
+                    return;
+                }
                 EMCSchematicCannonBlockEntity.ReplaceMode[] modes =
                         EMCSchematicCannonBlockEntity.ReplaceMode.values();
                 int modeOrd = packet.replaceMode();

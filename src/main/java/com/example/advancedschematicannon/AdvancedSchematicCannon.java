@@ -52,6 +52,7 @@ public class AdvancedSchematicCannon {
 
     private void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
         event.register(EMCSchematicCannonRenderer.PIPE_MODEL);
+        event.register(EMCSchematicCannonRenderer.PIPE_MODEL_ENHANCED);
         event.register(EMCSchematicCannonRenderer.CONNECTOR_MODEL);
     }
 

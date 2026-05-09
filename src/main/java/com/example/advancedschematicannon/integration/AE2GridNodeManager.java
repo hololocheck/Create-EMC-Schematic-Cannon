@@ -108,11 +108,12 @@ public class AE2GridNodeManager implements IInWorldGridNodeHost, IActionHost,
     }
 
     // ===== ICraftingSimulationRequester =====
-    private IActionSource simulationSource = IActionSource.empty();
-    public void setSimulationSource(IActionSource source) { this.simulationSource = source; }
-
+    // 旧実装は instance 共有 field を mutate していたため、複数 craft 要求が並列で
+    // 走ると source が race した。現在は AE2Integration 側で per-call の
+    // StaticCraftingRequester を simRequester として使うため、ここは
+    // この manager 自身を machine として識別する固定 source を返すだけで良い。
     @Override
     public IActionSource getActionSource() {
-        return simulationSource;
+        return IActionSource.ofMachine(this);
     }
 }

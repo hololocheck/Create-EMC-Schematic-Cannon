@@ -229,8 +229,11 @@ public class SettingsTabWidget extends AbstractWidget {
                     return true;
                 }
             }
+            // パネル領域内のクリックは消費する(下層のスロットに伝搬させない)
+            return true;
         }
-        return true;
+        // タブ枠もボタンもヒットしなかった場合は消費しない
+        return false;
     }
 
     @Override

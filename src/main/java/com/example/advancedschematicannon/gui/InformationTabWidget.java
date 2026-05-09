@@ -88,7 +88,8 @@ public class InformationTabWidget extends AbstractWidget {
             scrollOffset = 0;
             return true;
         }
-        return true;
+        // 展開パネル内のクリックは消費(下層に伝搬させない)、それ以外は false
+        return animationProgress > 0.5f;
     }
 
     @Override

@@ -367,7 +367,7 @@ public class AE2Integration {
             if (gridNodeManager != null) {
                 var grid = getActiveGrid(gridNodeManager);
                 if (grid != null && requestCraft(grid, needed, amount, level,
-                        (AE2GridNodeManager) gridNodeManager, null)) {
+                        (AE2GridNodeManager) gridNodeManager, null, cannonPos)) {
                     return true;
                 }
             }
@@ -381,7 +381,7 @@ public class AE2Integration {
                 if (neighborNode == null) continue;
                 var grid = neighborNode.getGrid();
                 if (grid == null) continue;
-                if (requestCraft(grid, needed, amount, level, null, neighborNode)) return true;
+                if (requestCraft(grid, needed, amount, level, null, neighborNode, cannonPos)) return true;
             }
         } catch (NoClassDefFoundError | Exception e) {
             AdvancedSchematicCannon.LOGGER.debug("AE2 autocraft error: {}", e.getMessage());
@@ -396,9 +396,19 @@ public class AE2Integration {
     private static final java.util.concurrent.ConcurrentHashMap<PendingCraftKey, PendingCraft> PENDING_CRAFTS =
             new java.util.concurrent.ConcurrentHashMap<>();
     private static final long CRAFT_CALCULATION_TIMEOUT_MS = 30_000L;
-    private static final long STANDALONE_JOB_RETRY_MS = 1_000L;
+    /**
+     * link が取得できなかったジョブの再試行までの最低待機時間。
+     * 短すぎると、レシピ未登録ブロックがある間に毎秒 craft 計算が AE2 に飛んで負荷になる。
+     */
+    private static final long STANDALONE_JOB_RETRY_MS = 30_000L;
 
-    private record PendingCraftKey(appeng.api.networking.IGrid grid, appeng.api.stacks.AEKey what) {}
+    /**
+     * pos を含めることで、同じ ME 網に2台のキャノンが同じアイテムを要求しても
+     * 互いに干渉しないようにする。
+     */
+    private record PendingCraftKey(appeng.api.networking.IGrid grid,
+                                    appeng.api.stacks.AEKey what,
+                                    net.minecraft.core.BlockPos cannonPos) {}
 
     private static final class PendingCraft {
         private volatile long retryAfterMs;
@@ -448,13 +458,36 @@ public class AE2Integration {
         PENDING_CRAFTS.remove(key, pending);
     }
 
+    /**
+     * 5秒ごとに link の完了を確認し、完了済みならエントリを削除する。
+     * 5分でフォース打ち切り(リーク対策)。AE2 側の jobStateChange が
+     * 失火した場合でも長時間 PENDING_CRAFTS / StaticCraftingRequester が
+     * メモリに残らないようにする。
+     */
+    private static final long FORCE_CLEANUP_AFTER_MS = 5L * 60L * 1000L;
+
     private static void schedulePendingCleanup(PendingCraftKey key, PendingCraft pending) {
+        schedulePendingCleanup(key, pending, System.currentTimeMillis());
+    }
+
+    private static void schedulePendingCleanup(PendingCraftKey key, PendingCraft pending, long startedAtMs) {
         java.util.concurrent.CompletableFuture.delayedExecutor(
                 5L, java.util.concurrent.TimeUnit.SECONDS).execute(() -> {
-            if (!pending.isActive(System.currentTimeMillis())) {
+            long now = System.currentTimeMillis();
+            if (!pending.isActive(now)) {
                 clearPendingCraft(key, pending);
-            } else if (pending.link != null) {
-                schedulePendingCleanup(key, pending);
+                return;
+            }
+            if (now - startedAtMs >= FORCE_CLEANUP_AFTER_MS) {
+                // link を強制 cancel して entry も削除
+                try {
+                    if (pending.link != null) pending.link.cancel();
+                } catch (Throwable ignored) {}
+                clearPendingCraft(key, pending);
+                return;
+            }
+            if (pending.link != null) {
+                schedulePendingCleanup(key, pending, startedAtMs);
             }
         });
     }
@@ -499,7 +532,8 @@ public class AE2Integration {
                                           long amount,
                                           Level level,
                                           AE2GridNodeManager gridNodeManager,
-                                          appeng.api.networking.IGridNode fallbackRequesterNode) {
+                                          appeng.api.networking.IGridNode fallbackRequesterNode,
+                                          net.minecraft.core.BlockPos cannonPos) {
         try {
             var craftingService = grid.getService(appeng.api.networking.crafting.ICraftingService.class);
             if (craftingService == null) {
@@ -526,24 +560,25 @@ public class AE2Integration {
             final var source = gridNodeManager != null
                     ? appeng.api.networking.security.IActionSource.ofMachine(gridNodeManager)
                     : appeng.api.networking.security.IActionSource.empty();
-            // gridNodeManager が ICraftingSimulationRequester を実装しているなら、それを使う。
-            // 隣接グリッド(gridNodeManager==null)の場合は一時 Requester を使う。
-            final appeng.api.networking.crafting.ICraftingSimulationRequester simRequester;
+            // simRequester(シミュレーション用): 常に per-call の StaticCraftingRequester を生成して、
+            //   AE2GridNodeManager.simulationSource(instance共有 field) の race condition を回避。
+            // craftingRequester(ジョブ追跡用): gridNodeManager があればそれを使い、
+            //   ICraftingLink を activeLinks に登録できるようにする。
+            //   無ければ StaticCraftingRequester を使う(短命だがOK)。
+            final appeng.api.networking.IGridNode actionableNode =
+                    gridNodeManager != null ? gridNodeManager.getNode() : fallbackRequesterNode;
+            final appeng.api.networking.crafting.ICraftingSimulationRequester simRequester =
+                    new StaticCraftingRequester(serverLevel, source, actionableNode);
             final appeng.api.networking.crafting.ICraftingRequester craftingRequester;
             if (gridNodeManager != null) {
-                gridNodeManager.setSimulationSource(source);
-                simRequester = gridNodeManager;
                 craftingRequester = gridNodeManager;
             } else if (fallbackRequesterNode != null) {
-                var requester = new StaticCraftingRequester(serverLevel, source, fallbackRequesterNode);
-                simRequester = requester;
-                craftingRequester = requester;
+                craftingRequester = (StaticCraftingRequester) simRequester;
             } else {
-                simRequester = new StaticCraftingRequester(serverLevel, source, null);
                 craftingRequester = null;
             }
 
-            final var pendingKey = new PendingCraftKey(grid, aeKey);
+            final var pendingKey = new PendingCraftKey(grid, aeKey, cannonPos);
             final var pendingCraft = reservePendingCraft(pendingKey);
             if (pendingCraft == null) {
                 AdvancedSchematicCannon.LOGGER.info("[AE2 missing craft] request already pending: key={} amount={}", aeKey, amount);

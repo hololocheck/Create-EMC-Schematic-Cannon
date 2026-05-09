@@ -27,6 +27,10 @@ public class EMCSchematicCannonRenderer implements BlockEntityRenderer<EMCSchema
     public static final ModelResourceLocation CONNECTOR_MODEL = ModelResourceLocation.standalone(
             ResourceLocation.fromNamespaceAndPath(AdvancedSchematicCannon.MOD_ID,
                     "block/emc_schematic_cannon/connector"));
+    // 強化型概略図砲用の砲身モデル(砲口前面テクスチャのみ差し替え)
+    public static final ModelResourceLocation PIPE_MODEL_ENHANCED = ModelResourceLocation.standalone(
+            ResourceLocation.fromNamespaceAndPath(AdvancedSchematicCannon.MOD_ID,
+                    "block/enhanced_schematic_cannon/pipe"));
 
     public EMCSchematicCannonRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -62,7 +66,8 @@ public class EMCSchematicCannonRenderer implements BlockEntityRenderer<EMCSchema
         var modelRenderer = mc.getBlockRenderer().getModelRenderer();
 
         BakedModel connectorModel = modelManager.getModel(CONNECTOR_MODEL);
-        BakedModel pipeModel = modelManager.getModel(PIPE_MODEL);
+        BakedModel pipeModel = modelManager.getModel(
+                block instanceof EnhancedSchematicCannonBlock ? PIPE_MODEL_ENHANCED : PIPE_MODEL);
 
         VertexConsumer buffer = bufferSource.getBuffer(RenderType.solid());
 

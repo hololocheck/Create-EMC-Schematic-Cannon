@@ -40,7 +40,10 @@ public record WandDistancePacket(int distance) implements CustomPacketPayload {
                     stack = player.getOffhandItem();
                     if (!stack.is(ModRegistry.AIR_PLACEMENT_WAND.get())) return;
                 }
-                AirPlacementWandItem.setDistance(stack, packet.distance());
+                // クライアントから極端な値を送られないよう明示的に clamp
+                int clamped = net.minecraft.util.Mth.clamp(packet.distance(),
+                        AirPlacementWandItem.MIN_DISTANCE, AirPlacementWandItem.MAX_DISTANCE);
+                AirPlacementWandItem.setDistance(stack, clamped);
             }
         });
     }

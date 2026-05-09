@@ -31,6 +31,8 @@ public class SpeedTabWidget extends AbstractWidget {
     private static final int TRACK_HEIGHT = 5;
     private static final int KNOB_WIDTH = 5;
     private static final int KNOB_HEIGHT = 9;
+    /** Slider クリック判定とドラッグ判定で同じ X 基点を使うための定数 */
+    private static final int SLIDER_X_OFFSET = 6;
 
     private boolean expanded = false;
     private float animationProgress = 0;
@@ -66,6 +68,7 @@ public class SpeedTabWidget extends AbstractWidget {
     }
 
     public boolean isExpanded() { return expanded; }
+    public boolean isDragging() { return dragging; }
 
     public void setCollapsed() {
         expanded = false;
@@ -84,7 +87,7 @@ public class SpeedTabWidget extends AbstractWidget {
 
         // Slider drag start (grey frame inner area at texture y=31)
         if (animationProgress > 0.5f) {
-            int sliderX = guiRight + 6;
+            int sliderX = guiRight + SLIDER_X_OFFSET;
             int sliderY = tabY + 31;
             if (mouseX >= sliderX && mouseX < sliderX + TRACK_WIDTH
                     && mouseY >= sliderY - 4 && mouseY < sliderY + TRACK_HEIGHT + 4) {
@@ -92,15 +95,19 @@ public class SpeedTabWidget extends AbstractWidget {
                 updateSliderValue(mouseX, sliderX);
                 return true;
             }
+            // パネル展開中はクリックを消費(下層スロットに伝搬させない)
+            return true;
         }
-        return true;
+        return false;
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (dragging) {
-            int sliderX = guiRight + 7;
-            updateSliderValue(mouseX, sliderX);
+            // mouseClicked と基点を統一(以前は +7 で 1px ずれていた)
+            int sliderX = guiRight + SLIDER_X_OFFSET;
+            // ドラッグ中はローカル更新のみ。送信はリリース時にまとめて行う(spam防止)
+            updateSliderValueLocal(mouseX, sliderX);
             return true;
         }
         return false;
@@ -110,20 +117,36 @@ public class SpeedTabWidget extends AbstractWidget {
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (dragging) {
             dragging = false;
+            // ドラッグ確定時に最終値を1回だけ送信
+            if (blocksPerTick != lastSentBlocksPerTick) {
+                lastSentBlocksPerTick = blocksPerTick;
+                onChanged.run();
+            }
             return true;
         }
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
+    private int lastSentBlocksPerTick = -1;
+
     private void updateSliderValue(double mouseX, int sliderX) {
+        // 初回クリックで値が即決まる場合のみ送信(タップ操作)
+        if (updateSliderValueLocal(mouseX, sliderX)) {
+            lastSentBlocksPerTick = blocksPerTick;
+            onChanged.run();
+        }
+    }
+
+    private boolean updateSliderValueLocal(double mouseX, int sliderX) {
         float ratio = (float)((mouseX - sliderX) / TRACK_WIDTH);
         ratio = Math.max(0, Math.min(1, ratio));
         int newValue = 1 + (int)(ratio * 255);
         newValue = Math.max(1, Math.min(256, newValue));
         if (newValue != blocksPerTick) {
             blocksPerTick = newValue;
-            onChanged.run();
+            return true;
         }
+        return false;
     }
 
     @Override
@@ -197,7 +220,7 @@ public class SpeedTabWidget extends AbstractWidget {
         // Slider is inside the grey frame drawn in the expanded texture
         // Grey frame inner area: texture (6,31) to (91,35) = 86x5px
         // In screen coords: (guiRight+6, tabY+31)
-        int sliderX = guiRight + 6;
+        int sliderX = guiRight + SLIDER_X_OFFSET;
         int sliderY = tabY + 31;
 
         // Fill: render from left edge to knob center (blue over dark background)

@@ -60,18 +60,25 @@ public class EMCSchematicCannonBlockEntity extends BlockEntity implements MenuPr
     public static final int FILLER_SLOT_COUNT = FILLER_SLOT_COLS * FILLER_SLOT_ROWS; // 52スロット
     public static final int TOTAL_SLOTS = SLOT_FILLER_START + FILLER_SLOT_COUNT; // 55
 
-    /** extractEnergy()は外部消費用でextract=0のため使えない。直接fieldアクセスで内部消費する。 */
-    private static final java.lang.reflect.Field ENERGY_FIELD;
-    static {
-        try {
-            ENERGY_FIELD = EnergyStorage.class.getDeclaredField("energy");
-            ENERGY_FIELD.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException("Failed to access EnergyStorage.energy field", e);
+    /**
+     * extractEnergy()は外部消費用(extract=0)で使えないため、内部消費メソッドを公開した
+     * サブクラスで EnergyStorage.energy(protected) に直接アクセスする。
+     * 旧実装のリフレクションは NeoForge アップデートでフィールド名が変わると
+     * 起動不能になるため廃止。
+     */
+    private static final class InternalEnergyStorage extends EnergyStorage {
+        InternalEnergyStorage(int capacity) {
+            super(capacity, capacity, 0, 0);
+        }
+        void consumeInternal(int amount) {
+            this.energy = Math.max(0, this.energy - amount);
+        }
+        void setStoredInternal(int value) {
+            this.energy = Math.max(0, Math.min(this.capacity, value));
         }
     }
 
-    private final EnergyStorage energyStorage = new EnergyStorage(MAX_ENERGY, MAX_ENERGY, 0, 0);
+    private final InternalEnergyStorage energyStorage = new InternalEnergyStorage(MAX_ENERGY);
 
     private final ItemStackHandler itemHandler = new ItemStackHandler(TOTAL_SLOTS) {
         @Override
@@ -776,12 +783,7 @@ public class EMCSchematicCannonBlockEntity extends BlockEntity implements MenuPr
     }
 
     private void consumeEnergy(int amount) {
-        try {
-            int current = ENERGY_FIELD.getInt(energyStorage);
-            ENERGY_FIELD.setInt(energyStorage, Math.max(0, current - amount));
-        } catch (IllegalAccessException e) {
-            AdvancedSchematicCannon.LOGGER.warn("Failed to consume energy internally", e);
-        }
+        energyStorage.consumeInternal(amount);
     }
 
     // ===== クライアント同期 =====
@@ -852,6 +854,9 @@ public class EMCSchematicCannonBlockEntity extends BlockEntity implements MenuPr
      * ownerUUIDが設定されている場合のみ動作。
      */
     private void consumeFuelItems() {
+        // 稼働中のみ消費。idle/finished 中に消費すると、プレイヤー不在で
+        // ownerUUID が古い場合や、想定外の EMC 増加の温床になる。
+        if (state != State.RUNNING) return;
         if (ownerUUID == null) return;
         if (!(level instanceof ServerLevel serverLevel)) return;
         if (!com.example.advancedschematicannon.integration.ProjectEBridge.isLoaded()) return;
@@ -1860,6 +1865,21 @@ public class EMCSchematicCannonBlockEntity extends BlockEntity implements MenuPr
                 Math.max(p1.getX(), p2.getX()),
                 Math.max(p1.getY(), p2.getY()),
                 Math.max(p1.getZ(), p2.getZ()));
+        // 巨大範囲によるサーバtick内スパイクを防ぐため、体積上限を設ける。
+        long volume = (long)(max.getX() - min.getX() + 1)
+                    * (long)(max.getY() - min.getY() + 1)
+                    * (long)(max.getZ() - min.getZ() + 1);
+        if (volume > MAX_AIR_VOLUME_PLACEMENTS) {
+            AdvancedSchematicCannon.LOGGER.warn(
+                    "scanRemoveRange aborted: volume {} exceeds limit {} (set smaller range)",
+                    volume, MAX_AIR_VOLUME_PLACEMENTS);
+            removeSummary.clear();
+            blockSummary.clear();
+            totalBlocks = 0;
+            placedBlocks = 0;
+            state = State.ERROR;
+            return;
+        }
         removeSummary.clear();
         for (int y = max.getY(); y >= min.getY(); y--) {
             for (int z = min.getZ(); z <= max.getZ(); z++) {
@@ -2324,8 +2344,19 @@ public class EMCSchematicCannonBlockEntity extends BlockEntity implements MenuPr
     
     public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
         if (player instanceof ServerPlayer serverPlayer) {
-            this.ownerUUID = serverPlayer.getUUID();
-            updateCachedEmc(serverPlayer);
+            // owner は IDLE/FINISHED/ERROR 時のみ更新。RUNNING/PAUSED 中に他人が
+            // GUI を開いて owner を奪うと、その人の EMC/燃料が引き落とされてしまう。
+            if (ownerUUID == null
+                    || state == State.IDLE
+                    || state == State.FINISHED
+                    || state == State.ERROR) {
+                this.ownerUUID = serverPlayer.getUUID();
+            }
+            // EMC 表示は閲覧者自身のものを表示しても害はないが、ジョブ稼働中は owner の
+            // 残高を維持したいので owner==viewer のときだけ更新する。
+            if (ownerUUID != null && ownerUUID.equals(serverPlayer.getUUID())) {
+                updateCachedEmc(serverPlayer);
+            }
             syncToClient();
         }
         return new EMCSchematicCannonMenu(containerId, inventory, this);

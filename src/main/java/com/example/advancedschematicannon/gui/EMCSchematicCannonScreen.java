@@ -24,6 +24,9 @@ public class EMCSchematicCannonScreen extends AbstractContainerScreen<EMCSchemat
     // Gen2 Textures
     private static final ResourceLocation GUI_TEXTURE = ResourceLocation.fromNamespaceAndPath(
             AdvancedSchematicCannon.MOD_ID, "textures/gui/gen2/gui_gen2.png");
+    // 強化型概略図砲用GUI（EMC燃料スロットアイコン無し）
+    private static final ResourceLocation GUI_TEXTURE_ENHANCED = ResourceLocation.fromNamespaceAndPath(
+            AdvancedSchematicCannon.MOD_ID, "textures/gui/gen2/gui_gen2_enhanced.png");
     private static final ResourceLocation FE_BAR_TEXTURE = ResourceLocation.fromNamespaceAndPath(
             AdvancedSchematicCannon.MOD_ID, "textures/gui/gen2/energybar.png");
     private static final ResourceLocation PROGRESS_TEXTURE = ResourceLocation.fromNamespaceAndPath(
@@ -187,7 +190,10 @@ public class EMCSchematicCannonScreen extends AbstractContainerScreen<EMCSchemat
     }
 
     private void sendAllSettings() {
-        syncCooldown = 10;
+        // 30 tick(1.5秒): サーバー往復+反映時間を見込んで長めに取る。
+        // 短すぎるとサーバー反映前に containerTick で旧値に上書きされ、
+        // 「動かしたつもりが戻る」UXバグが起きる。
+        syncCooldown = 30;
         EMCSchematicCannonBlockEntity be = menu.getBlockEntity();
         if (be == null) return;
         PacketDistributor.sendToServer(new CannonSettingsPacket(
@@ -278,7 +284,8 @@ public class EMCSchematicCannonScreen extends AbstractContainerScreen<EMCSchemat
             if (storageToggle != null) storageToggle.setMode(menu.getStorageMode());
             if (reuseToggle != null) reuseToggle.setToggled(menu.isReuseSchematic());
             if (visibilityToggle != null) visibilityToggle.setToggled(menu.isPreviewVisible());
-            if (speedTab != null && menu.getBlocksPerTick() > 0) {
+            // ドラッグ中はサーバー値で上書きしない(値が飛ぶのを防ぐ)
+            if (speedTab != null && menu.getBlocksPerTick() > 0 && !speedTab.isDragging()) {
                 speedTab.setBlocksPerTick(menu.getBlocksPerTick());
             }
             if (modeToggle != null) {
@@ -297,7 +304,8 @@ public class EMCSchematicCannonScreen extends AbstractContainerScreen<EMCSchemat
         int x = this.leftPos;
         int y = this.topPos;
 
-        graphics.blit(GUI_TEXTURE, x, y, 0, 0, GUI_WIDTH, GUI_HEIGHT, GUI_WIDTH, GUI_HEIGHT);
+        ResourceLocation guiTex = menu.supportsEmc() ? GUI_TEXTURE : GUI_TEXTURE_ENHANCED;
+        graphics.blit(guiTex, x, y, 0, 0, GUI_WIDTH, GUI_HEIGHT, GUI_WIDTH, GUI_HEIGHT);
         renderFEBar(graphics, x, y);
         renderProgressBar(graphics, x, y);
 
@@ -477,12 +485,22 @@ public class EMCSchematicCannonScreen extends AbstractContainerScreen<EMCSchemat
                 graphics.drawString(font, label, px, py + 4, 0xFFE74C3C, false);
                 ItemStack missingItem = getItemStackFromRegistryName(missingBlock);
                 int labelWidth = font.width(label);
+                int iconX = px + labelWidth + 2;
+                int nameX;
+                String displayName;
                 if (!missingItem.isEmpty()) {
-                    graphics.renderItem(missingItem, px + labelWidth + 2, py);
+                    graphics.renderItem(missingItem, iconX, py);
+                    nameX = iconX + 18;
+                    displayName = missingItem.getHoverName().getString();
                 } else {
-                    String shortName = missingBlock.contains(":") ?
+                    nameX = iconX;
+                    displayName = missingBlock.contains(":") ?
                             missingBlock.substring(missingBlock.indexOf(':') + 1) : missingBlock;
-                    graphics.drawString(font, shortName, px + labelWidth + 2, py + 4, 0xFFFF6666, false);
+                }
+                int nameMaxWidth = (px + maxTextWidth) - nameX;
+                if (nameMaxWidth > 0) {
+                    String truncated = truncateText(displayName, nameMaxWidth);
+                    graphics.drawString(font, truncated, nameX, py + 4, 0xFFFF6666, false);
                 }
             }
         }

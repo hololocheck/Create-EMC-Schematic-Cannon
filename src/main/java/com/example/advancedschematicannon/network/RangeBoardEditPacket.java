@@ -36,14 +36,18 @@ public record RangeBoardEditPacket(int editMode) implements CustomPacketPayload 
     public static void handle(RangeBoardEditPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (ctx.player() instanceof ServerPlayer player) {
+                // editMode: 0/1/2 のみ有効。他の値はクライアント改竄として破棄。
+                int mode = packet.editMode();
+                if (mode < 0 || mode > 2) return;
+
                 // メインハンド・オフハンドの範囲指定ボードを検索
                 ItemStack stack = RangeBoardItem.findHeldRangeBoard(player);
                 if (stack.isEmpty()) return;
 
-                if (packet.editMode() == 0) {
+                if (mode == 0) {
                     stack.remove(ModDataComponents.RANGE_EDIT_MODE.get());
                 } else {
-                    stack.set(ModDataComponents.RANGE_EDIT_MODE.get(), packet.editMode());
+                    stack.set(ModDataComponents.RANGE_EDIT_MODE.get(), mode);
                 }
             }
         });

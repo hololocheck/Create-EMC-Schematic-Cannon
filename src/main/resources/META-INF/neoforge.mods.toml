@@ -30,7 +30,8 @@ side = "BOTH"
 [[dependencies.advancedschematicannon]]
 modId = "create"
 type = "required"
-versionRange = "[0.5,)"
+# 6.x の AllDataComponents API を使用するため、Create 6.0 以上必須
+versionRange = "[6.0,)"
 ordering = "AFTER"
 side = "BOTH"
 

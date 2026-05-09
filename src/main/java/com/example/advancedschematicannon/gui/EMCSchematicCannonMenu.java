@@ -117,11 +117,17 @@ public class EMCSchematicCannonMenu extends AbstractContainerMenu {
         if (be instanceof EMCSchematicCannonBlockEntity cannon) {
             return new EMCSchematicCannonMenu(containerId, playerInv, cannon, clientData);
         }
-        // フォールバック
-        return new EMCSchematicCannonMenu(containerId, playerInv,
-                new EMCSchematicCannonBlockEntity(pos,
-                        ModRegistry.EMC_CANNON_BLOCK.get().defaultBlockState()),
-                clientData);
+        // フォールバック: client BE がまだ届いていない場合。
+        // - ProjectE 不在環境では EMC_CANNON_BLOCK が null になるため、
+        //   常に存在する ENHANCED_CANNON_BLOCK を使う。
+        // - level を明示セットして stillValid() が早期 false にならないようにし、
+        //   GUI が一瞬で閉じる UX バグを回避する(本物の BE が届けば server 同期で動作)。
+        var fallbackBlock = ModRegistry.EMC_CANNON_BLOCK != null
+                ? ModRegistry.EMC_CANNON_BLOCK.get()
+                : ModRegistry.ENHANCED_CANNON_BLOCK.get();
+        var dummyBe = new EMCSchematicCannonBlockEntity(pos, fallbackBlock.defaultBlockState());
+        dummyBe.setLevel(playerInv.player.level());
+        return new EMCSchematicCannonMenu(containerId, playerInv, dummyBe, clientData);
     }
 
     /**
@@ -215,7 +221,9 @@ public class EMCSchematicCannonMenu extends AbstractContainerMenu {
     public boolean isSkipTileEntities() { return (data.get(7) & 2) != 0; }
     public boolean isUseEmc() { return (data.get(7) & 4) != 0; }
     public boolean isReuseSchematic() { return (data.get(7) & 8) != 0; }
-    public boolean supportsEmc() { return (data.get(7) & 16) != 0; }
+    // BEへ直接委譲: ContainerDataはScreen.init()時点では未同期のため、
+    // ここで data.get(7) を読むとEMCトグルが生成されない不具合が発生する。
+    public boolean supportsEmc() { return blockEntity != null && blockEntity.supportsEmc(); }
     public int getBlocksPerTick() { return data.get(8); }
     public EMCSchematicCannonBlockEntity.StorageMode getStorageMode() {
         int ord = data.get(9);
