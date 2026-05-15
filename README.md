@@ -1,129 +1,342 @@
-# Create: Advanced Schematic Cannon
+# Advanced Schematic Cannon
 
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/ERlLhXIVe5c" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-*(Click the image above to watch the showcase video on YouTube! / 画像をクリックしてYouTubeの紹介動画をご覧ください！)*
+<p align="center">
+  <img src="src/main/resources/icon.png" width="120" alt="Advanced Schematic Cannon">
+</p>
 
-### 🚀 The Ultimate Endgame Builder
-Tired of the slow building speed of the vanilla Schematicannon? Exhausted by the inefficiency of moving items from your ME network to adjacent chests?
+<p align="center">
+  <strong>Create × Applied Energistics 2 × ProjectE — Endgame Building Automation</strong>
+</p>
 
-**Create: Advanced Schematic Cannon** completely destroys the bottlenecks of large-scale building. By integrating Create and Applied Energistics 2 — with optional ProjectE support — this mod introduces a high-speed, fully optimized, and incredibly smart endgame Schematicannon powered by FE energy.
+<p align="center">
+  <img src="https://img.shields.io/badge/Minecraft-1.21.1-62B47A.svg" alt="Minecraft">
+  <img src="https://img.shields.io/badge/NeoForge-21.1.168+-orange.svg" alt="NeoForge">
+  <img src="https://img.shields.io/badge/version-1.1.2-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
+</p>
 
-![GUI](https://cdn.modrinth.com/data/cached_images/88bda77852a13dfa31643fe90b045e1e0c2c4932.png)
-
-### ✨ Key Features
-* ⚡ **Insane Speed & Extreme Server Optimization:** Adjust building speed up to a mind-blowing **256 blocks per tick**. Network NBT sync is throttled, dual-packet sending is eliminated, and `UPDATE_KNOWN_SHAPE` prevents cascading block updates. Play at maximum speed with minimal ping impact!
-* 🔧 **Two Cannon Variants:** Choose between the **Enhanced Schematic Cannon** (always available, no EMC required) and the **EMC Schematic Cannon** (registered automatically when ProjectE is installed) — both share the same powerful BlockEntity and GUI.
-* 🤖 **AE2 Auto-Crafting:** When a block is missing from your ME network, the cannon automatically submits a craft request to your AE2 crafting CPUs and waits for delivery. Per-cannon request tracking prevents duplicate jobs and CPU storms.
-* 🔌 **AE2 Cable Power Input:** Connect AE2 energy cables directly — the cannon converts AE→FE at up to 10,000 FE/tick into its own buffer. No need for a separate power line.
-* 💾 **Direct AE2 Network Access:** Pulls items directly from your ME Network. Features a flexible storage toggle ("AE2 & Chests", "AE2 Only", or "Chests Only").
-* 🌌 **Optional ProjectE Integration (On-Demand Transmutation):** With ProjectE installed, toggle "EMC Mode" on the EMC variant to automatically consume your EMC to synthesize missing blocks on the fly.
-* 🏗️ **Advanced AE2 Part Placement & Auto-Rotation:** Fully supports placing AE2 cables and automatically rotates complex multipart blocks like ME Drives and Terminals when rotating the schematic.
-
-### 🆕 v1.1.2 — Hardening & Polish Update
-* 🛡️ **Multiplayer Hardening:** Owner UUID is locked while a job is running, preventing other players from hijacking the cannon by simply opening the GUI. Action and Settings packets now require ownership (OPs allowed).
-* 🧰 **Packet Validation:** All client→server packets validate ordinals and clamp distance values to prevent crashes from malformed packets.
-* 🔁 **AE2 Auto-Craft Robustness:** Pending-craft tracking now keys on cannon position so two cannons on the same ME network never block each other. Standalone retry interval extended from 1 s → 30 s to stop calculation storms when a recipe is permanently missing. Per-call simulation requester eliminates a shared-state race.
-* 🧹 **Resource Leak Fix:** Pending craft entries are force-cleaned after 5 minutes if AE2 fails to report job completion.
-* 🖱️ **GUI Polish:** Tab widgets no longer swallow clicks in dead zones. Speed slider only sends a packet on release (no more 60 pkt/s while dragging) and uses a unified X offset for click/drag (1 px snap fixed).
-* ⏱️ **Settings Sync:** `syncCooldown` extended 10 → 30 ticks and dragging the speed slider no longer gets overwritten by stale server values.
-* 🔧 **NeoForge-Future-Proof Energy:** Internal energy consumption no longer relies on reflecting `EnergyStorage.energy`; a small subclass exposes a safe `consumeInternal(int)` instead.
-* 🎨 **Enhanced Cannon Visuals:** The Enhanced variant now has its own GUI background (no EMC fuel slot icon) and barrel front texture, switched dynamically by block type. The EMC variant is unchanged.
-* 📝 **Item Name on Missing Block:** The "Missing block" indicator in the GUI now shows the item display name next to the icon.
-
-### 🆕 v1.1.0 — Gen2 GUI Update
-* 🖥️ **Gen2 GUI:** Complete GUI overhaul with expandable **Settings Tab**, **Speed Tab**, and **Information Tab**. All buttons feature dedicated textures with hover effects. Block list (4 cols × 13 rows) with mouse wheel scrolling and EMC icon overlay.
-* 📐 **Filler Mode (7 Patterns):** Switch to Filler Mode by inserting a Range Board. Build with **Fill**, **Wall**, **Tower**, **Box**, **Circle Wall**, **Complete Erase**, and **Removal** patterns.
-* 🪄 **Air Placement Wand:** A new FE-powered tool (400,000 FE capacity) that places transparent Frame Blocks in mid-air. Adjust distance from 1–15 blocks with Shift+Scroll. Bulk-remove all placed blocks with Shift+Right-click.
-* 📋 **Range Board:** A new 2-point range selection tool with 3 modes (Normal / Edit Pos1 / Edit Pos2). Raycast up to 64 blocks. Used with Filler Mode and Removal Mode.
-* 🧱 **Frame Block:** A new transparent scaffolding block — instant break, light-transmitting, supports torches and redstone placement.
-* 🔄 **Enhanced Removal Mode:** EMC Conversion ON converts EMC-valued blocks to EMC and routes non-EMC items to storage. Auto-pauses when storage is full. Block list populates instantly on Range Board insertion.
-* 👁️ **Preview Display:** Toggle range frame preview in both Schematic and Filler modes. Instant response with no delay.
-* 🎯 **Cannon Animation:** Smooth target-tracking barrel animation using exponential decay interpolation, frame-rate independent.
-* 📖 **JEI Integration:** All recipes are now viewable in JEI.
-
-### 🛠️ Other QoL Features
-* **Top-Down Air Replacement:** Load an air-filled schematic to turn the cannon into a precision eraser. It deletes blocks from top to bottom, avoiding falling block lag and lighting calculation spikes.
-* **Schematic Reuse Toggle:** Choose whether to consume the schematic upon completion or keep it for mass production.
-* **Block Entity Protection:** Option to skip overwriting chests, furnaces, and other block entities.
-* **Skip Missing Blocks:** Continue placement even when specific blocks are out of stock.
-* **Range Volume Limit:** The Filler removal scan respects a 50,000-block volume cap to prevent server-tick spikes on huge ranges.
-
-### 📦 Dependencies & Recommendations
-* **Create** 6.0+ (Required)
-* **Applied Energistics 2** 19.0+ (Optional / Highly Recommended — required for AE2 auto-crafting & cable power)
-* **ProjectE** 1.0+ (Optional — enables the EMC Schematic Cannon variant and on-demand EMC transmutation)
-* **JEI** 19.27+ (Optional / Recommended for recipe viewing)
-* **FE (Forge Energy) Generating Mods** (Recommended): Since this cannon requires FE to operate, we highly recommend installing tech mods like **Mekanism** to generate and supply power. Alternatively, connect an AE2 energy cable for direct AE→FE conversion.
-
-### 💖 Credits & Acknowledgements
-Massive thanks to the developers of **Create**, **Applied Energistics 2**, and **ProjectE**. This addon would not exist without their phenomenal mods and foundational code. All respect goes to their respective teams.
-
-### 📜 License
-This project is licensed under the **MIT License**.
+[日本語](#japanese) | [English](#english)
 
 ---
 
-# 日本語版 (Japanese)
+<a id="japanese"></a>
+## 🇯🇵 日本語 (Japanese)
 
-### 🚀 概要
-本家Createの概略図砲の遅さにウンザリしていませんか？MEネットワークからチェストへアイテムを移し替える作業に疲れていませんか？
-**Create: Advanced Schematic Cannon** は、巨大建築における物流と速度のボトルネックを完全に破壊する、FEエネルギー駆動のエンドコンテンツ向け究極概略図砲を追加します。CreateとApplied Energistics 2を統合し、ProjectEは任意導入に対応しました。
+**Create** の概略図キャノンを高速化・自動化した **NeoForge Mod** です。Applied Energistics 2 の ME ネットワークから直接アイテムを取り出し、不足ブロックは AE2 自動クラフトに発注。ProjectE を導入すると EMC 錬成による無限建築も可能になります。マルチプレイ対応。
 
-### ✨ 主な機能
-* ⚡ **秒間5000ブロックの爆速 ＆ 極限のサーバー最適化:** 最大 **256ブロック/tick** という異次元のスピード。通信NBTの間引き、不要なパケット送信の排除、連鎖的なブロック更新を防ぐ仕様により、最高速度でもPingやFPSへの影響を最小限に抑えます。
-* 🔧 **2種類の概略図砲:** 常に利用可能な **強化型概略図砲** と、ProjectE導入時に追加される **EMC概略図砲** の2種類を選択可能。BlockEntityとGUIは共通設計です。
-* 🤖 **AE2自動クラフト連携:** MEネットワークに不足ブロックがある場合、自動的にAE2のクラフトCPUへジョブを発行して完成を待ちます。キャノン位置ごとのリクエスト追跡で重複ジョブやCPU過負荷を防止。
-* 🔌 **AE2ケーブルからのFE給電:** AE2エネルギーケーブルを直接接続するだけで、AE→FE変換(最大10,000 FE/tick)を行いキャノン内部バッファに供給。別の電力線は不要です。
-* 💾 **AE2ネットワーク直結:** MEネットワークから直接アイテムを引き出します。「AE2+チェスト」「AE2のみ」「チェストのみ」の柔軟な切り替え機能を搭載。
-* 🌌 **EMC錬成（ProjectE任意）:** ProjectE導入時、EMC概略図砲の「EMCモード」をONにすると、足りないブロックをEMCで錬成しながら建築を続行できます。
-* 🏗️ **AE2ケーブル設置 ＆ 完璧な回転対応:** 本家では不可能なAE2ケーブル設置に対応。概略図の回転時、MEターミナルやドライブなどの複雑なブロックの向きも自動計算して配置します。
+### 📦 依存Mod
+| Mod | バージョン | 必須 |
+|-----|-----------|------|
+| [Create](https://modrinth.com/mod/create) | 6.0+ | ✅ |
+| [NeoForge](https://neoforged.net/) | 21.1.168+ | ✅ |
+| [Applied Energistics 2](https://modrinth.com/mod/ae2) | 19.0+ | ❌ (任意 / 強く推奨) |
+| [ProjectE](https://www.curseforge.com/minecraft/mc-mods/projecte) | 1.0+ | ❌ (任意 / EMC型を追加) |
+| [JEI](https://modrinth.com/mod/jei) | 19.27+ | ❌ (任意) |
 
-### 🆕 v1.1.2 — 堅牢化＆ポリッシュアップデート
-* 🛡️ **マルチプレイ堅牢化:** 稼働中はオーナーUUIDをロックし、他プレイヤーがGUIを開くだけで所有権を奪われる挙動を修正。アクション/設定パケットも所有者のみ受理（OPは許可）。
-* 🧰 **パケット検証:** 全クライアント→サーバーパケットで ordinal の範囲チェック、距離値の clamp を追加。不正パケットによるクラッシュを防止。
-* 🔁 **AE2自動クラフトの堅牢化:** Pending Craft キーにキャノン位置を含めるよう変更。同一ME網に2台のキャノンがある場合の相互干渉を解消。レシピ未登録時のリトライ間隔を1秒→30秒に延長してCPU過負荷を防止。シミュレーション用Requesterを per-call 化して共有 state レースを排除。
-* 🧹 **リソースリーク対策:** AE2側からジョブ完了通知が来ない場合でも、5分タイムアウトでPending Craft エントリを強制クリーンアップ。
-* 🖱️ **GUI改善:** タブウィジェットの空白部分でクリックを吸わないよう修正。スピードスライダーはリリース時のみ送信(ドラッグ中の60pkt/s送信を解消)、クリック/ドラッグ判定の1pxずれも修正。
-* ⏱️ **設定同期:** `syncCooldown` を10→30 tickに延長、スライダードラッグ中はサーバー値で上書きしないように修正(値が戻るUXバグ解消)。
-* 🔧 **NeoForge将来互換:** 内部エネルギー消費の `EnergyStorage.energy` リフレクションを廃止。サブクラスで安全に `consumeInternal(int)` を提供する設計に変更。
-* 🎨 **強化型砲の専用ビジュアル:** 強化型概略図砲に独自のGUI背景(EMC燃料スロットアイコン無し)と砲身前面テクスチャを追加。ブロック種別で動的切替。EMC型は無変更。
-* 📝 **不足アイテム名表示:** GUIの「不足ブロック」表示にアイコンの隣にアイテム名を併記するよう改善。
+### 📸 スクリーンショット
 
-### 🆕 v1.1.0 — Gen2 GUIアップデート
-* 🖥️ **第2世代GUI:** GUIを全面リニューアル。展開式の**設定タブ**・**スピードタブ**・**情報タブ**を搭載。全ボタンにホバーエフェクト付きの専用テクスチャを採用。ブロックリスト（4列×13行）はマウスホイールスクロール対応、EMCアイコンオーバーレイ表示。
-* 📐 **フィラーモード（7パターン）:** 範囲指定ボードを挿入してフィラーモードに切替。**埋め立て**・**壁**・**タワー**・**箱**・**円壁**・**完全消去**・**撤去**の7種類の建築パターンを実行可能。
-* 🪄 **空中設置杖（新アイテム）:** FEエネルギー駆動（400,000 FE容量）の空中設置ツール。透明なフレームブロックを空中に設置可能。Shift+スクロールで設置距離を1〜15ブロックで調整。Shift+右クリックで設置した全ブロックを一括撤去。
-* 📋 **範囲指定ボード（新アイテム）:** 2点を指定して3D範囲を設定するツール。通常 / Pos1編集 / Pos2編集の3モード搭載。最大64ブロック先までレイキャスト対応。フィラーモード・撤去モードで使用。
-* 🧱 **フレームブロック（新ブロック）:** 透明な足場ブロック。素手で即破壊、光透過あり。松明やレッドストーンの設置が可能。
-* 🔄 **撤去モード強化:** EMC変換ON時はEMC値を持つブロックをEMCに変換、持たないブロックはストレージへ自動搬入。ストレージ満杯で自動一時停止。範囲指定ボード挿入時に即座にブロックリスト表示。
-* 👁️ **プレビュー表示:** 概略図モード・フィラーモード両方で範囲枠のプレビュー表示/非表示を切替可能。遅延なしの即時反映。
-* 🎯 **大砲アニメーション:** ターゲットブロックへのスムーズな追従アニメーション。指数減衰補間によるフレームレート非依存の滑らかな動き。
-* 📖 **JEIレシピ表示対応:** 全レシピがJEIから確認可能。
+<p align="center">
+  <img src="説明用素材/items.png" width="700" alt="追加アイテム一覧">
+  <br><em>追加アイテム・ブロック一覧 — 強化型/EMC概略図砲、範囲指定ボード、空中設置杖、フレームブロック</em>
+</p>
 
-### 🛠️ その他の便利機能
-* **上からの空気置換モード:** 砂の落下や光源バグによる負荷を防ぐため、現実の解体工事のように「上から下へ」処理するスマートな範囲指定イレイザー機能。
-* **概略図の再利用トグル:** 建築完了時に概略図を消費するか残すかを選択可能。
-* **ブロックエンティティ保護:** チェスト・かまど等のブロックエンティティを上書きしないオプション。
-* **不足ブロックスキップ:** 在庫切れのブロックをスキップして続行。
-* **撤去スキャン体積制限:** 50,000ブロックを超える巨大範囲のスキャンを抑止し、サーバtickスパイクを防止。
+<p align="center">
+  <img src="説明用素材/gui.png" width="700" alt="GUI">
+  <br><em>第2世代GUI — 展開式の設定/速度/情報タブ、ブロックリスト、エネルギーバー</em>
+</p>
 
-### 📦 前提Mod & 推奨環境 (Dependencies)
-* **Create** 6.0+ (必須)
-* **Applied Energistics 2** 19.0+ (任意 / 強く推奨 — AE2自動クラフトとケーブル給電に必要)
-* **ProjectE** 1.0+ (任意 — EMC概略図砲の追加とEMC錬成機能を有効化)
-* **JEI** 19.27+ (任意 / レシピ確認に推奨)
-* **FEを生成できるMod** (推奨): 本Modの稼働にはFEエネルギーを使用するため、**Mekanism** などの電気を生み出せる工業Modを併せて導入することを強くお勧めします。AE2エネルギーケーブルを直接接続してAE→FE変換を行うことも可能です。
+### ✨ 追加アイテム・ブロック
 
-### 💖 クレジット (Credits)
-素晴らしい前提Modである **Create**・**Applied Energistics 2**・**ProjectE** の開発チームに心から感謝を申し上げます。本Modは彼らの偉大な功績とコード基盤の上に成り立っています。
+#### 🔫 強化型概略図砲（ブロック）
+高速建築の中核を担うエンドコンテンツ向けキャノンです。常時利用可能で ProjectE 不要。
 
-### 📜 ライセンス (License)
-本Modは **MITライセンス** の下で公開されています。
+| 項目 | 詳細 |
+|------|------|
+| エネルギー容量 | 100,000 FE |
+| 設置コスト | 500 FE / ブロック |
+| 設置速度 | 1〜256 blocks/tick（スライダーで調整） |
+| マルチプレイ | オーナーUUIDロック、所有者のみ操作可（OPは許可） |
+
+**機能:**
+- 概略図スロットに概略図を入れて開始ボタンで自動建築
+- **AE2 ME ストレージ連携**: 隣接 AE2 ケーブルから自動取り出し
+- **AE2 自動クラフト**: 不足ブロックを AE2 のクラフト CPU へ発注（キャノン位置ごとに追跡、CPU 過負荷を防止）
+- **AE2 ケーブル給電**: AE→FE 変換（最大 10,000 FE/tick）に対応
+- **チェスト連携**: 隣接するチェストからアイテムを取り出し
+- **ストレージモード切替**: AE2+チェスト / AE2のみ / チェストのみ の3モード
+- **置換モード**: 固体ブロック置換しない / 固体→固体 / 固体→任意 / 固体→空気
+- **ブロックエンティティ保護**: チェスト等のBEを上書きしない保護機能
+- **不足ブロックスキップ**: 在庫切れブロックを飛ばして続行
+- **概略図再利用**: 完了後に概略図を消費しないオプション
 
 ---
 
-### 📌 Author / 作者
+#### 🌌 EMC概略図砲（ブロック・ProjectE導入時のみ）
+強化型のすべての機能に加えて、EMC による不足ブロック錬成に対応した上位バリアントです。
+
+| 項目 | 詳細 |
+|------|------|
+| 登録条件 | ProjectE 導入時のみ自動登録 |
+| 追加機能 | EMC 燃料スロット / EMC 錬成 / 撤去モードのEMC変換 |
+| GUI | EMC モード ON/OFF トグル、EMC 残高表示、EMC 燃料アイコン |
+
+**EMC関連機能:**
+- **EMC 錬成**: 在庫切れ時に EMC を消費してブロックをその場で生成
+- **EMC 燃料スロット**: アイテムを EMC に変換して内部バッファに蓄積（Ctrl+クリックで直接搬入）
+- **撤去モード EMC 変換**: フィラー撤去時に EMC 価値のあるブロックを自動 EMC 化、それ以外はストレージへ
+
+---
+
+#### 🪄 空中設置杖（アイテム）
+FEエネルギーを消費して、空中にフレームブロックを設置できる杖です。
+
+| 項目 | 詳細 |
+|------|------|
+| エネルギー容量 | 400,000 FE |
+| 設置コスト | 1,000 FE / ブロック |
+| 最大設置数 | 400個（満充電時） |
+| 設置距離 | 1〜15ブロック（デフォルト: 5） |
+
+**操作方法:**
+| 操作 | 動作 |
+|------|------|
+| 右クリック（空中） | 視線方向の設定距離にフレームブロックを設置 |
+| 右クリック（ブロック面） | クリックした面の隣にフレームブロックを設置 |
+| Shift + 右クリック | この杖で設置した全フレームブロックを一括撤去 |
+| Shift + スクロール | 設置距離を調整（1〜15ブロック） |
+| Shift + ホイール押込み | 設置距離をデフォルト(5)にリセット |
+
+- エネルギーバーがアイテム上に表示（赤→緑のグラデーション）
+- クリエイティブモードではエネルギー消費なし
+- 設置したブロックの位置はアイテムに記録され、一括撤去に使用
+
+---
+
+#### 📋 範囲指定ボード（アイテム）
+2点を指定して3D範囲を設定するツールです。フィラーモードや撤去モードで使用します。
+
+| 項目 | 詳細 |
+|------|------|
+| レイキャスト距離 | 最大64ブロック |
+| モード数 | 3（通常 / Pos1編集 / Pos2編集） |
+
+**操作方法:**
+| 操作 | 動作 |
+|------|------|
+| 右クリック（ブロック） | 座標を設定（通常モード: Pos1→Pos2交互） |
+| 右クリック（空中） | 64ブロック先までレイキャストして座標設定 |
+| Shift + 右クリック | 座標をクリア（モードにより対象が異なる） |
+| Alt + スクロール | モード切替（通常 ↔ 編集） |
+| Shift + スクロール（編集モード） | 編集対象を切替（Pos1 / Pos2） |
+
+---
+
+#### 🧱 フレームブロック（ブロック）
+空中設置杖で設置される透明な足場ブロックです。
+
+| 項目 | 詳細 |
+|------|------|
+| 硬度 | 0.0（素手で即破壊） |
+| 光透過 | あり（空を透過） |
+| 窒息 | なし |
+| 効果音 | 足場（Scaffolding） |
+| ピストン | 押すと破壊 |
+
+- 松明やレッドストーンを設置可能
+- 視界を遮らない透明ブロック
+- 建築の足場として使用
+
+---
+
+### 🔧 フィラーモード
+
+範囲指定ボードを挿入すると **フィラーモード** に切替わり、範囲内に対して以下の建築/撤去パターンを実行できます:
+
+| モード | 説明 |
+|--------|------|
+| 埋め立て | 範囲内の空気ブロックを指定ブロックで埋める |
+| 完全消去 | 範囲内の全ブロックを空気に置換 |
+| 撤去 | 範囲内のブロックを撤去し、EMC変換またはストレージに搬入 |
+| 壁 | 範囲の外壁のみを作成 |
+| タワー | 範囲内に柱を作成 |
+| 箱 | 範囲の外殻（6面）を作成 |
+| 円壁 | 範囲内に円筒形の壁を作成 |
+
+### 🔧 ビルド方法
+
+```bash
+gradlew.bat build
+```
+
+出力: `build/libs/advancedschematicannon-x.x.x.jar`
+
+---
+
+<a id="english"></a>
+## 🇺🇸 English
+
+A **NeoForge Mod** that supercharges and automates **Create**'s Schematic Cannon. Pulls items directly from your Applied Energistics 2 ME network, dispatches AE2 auto-crafting for missing blocks, and — with ProjectE installed — synthesizes blocks on the fly using EMC. Multiplayer compatible.
+
+### 📦 Dependencies
+| Mod | Version | Required |
+|-----|---------|----------|
+| [Create](https://modrinth.com/mod/create) | 6.0+ | ✅ |
+| [NeoForge](https://neoforged.net/) | 21.1.168+ | ✅ |
+| [Applied Energistics 2](https://modrinth.com/mod/ae2) | 19.0+ | ❌ (Optional / Highly recommended) |
+| [ProjectE](https://www.curseforge.com/minecraft/mc-mods/projecte) | 1.0+ | ❌ (Optional / Adds the EMC variant) |
+| [JEI](https://modrinth.com/mod/jei) | 19.27+ | ❌ (Optional) |
+
+### 📸 Screenshots
+
+<p align="center">
+  <img src="説明用素材/items.png" width="700" alt="Added Items">
+  <br><em>Added Items & Blocks — Enhanced/EMC Schematic Cannon, Range Board, Air Placement Wand, Frame Block</em>
+</p>
+
+<p align="center">
+  <img src="説明用素材/gui.png" width="700" alt="GUI">
+  <br><em>Gen2 GUI — Expandable Settings/Speed/Information tabs, block list, energy bar</em>
+</p>
+
+### ✨ Added Items & Blocks
+
+#### 🔫 Enhanced Schematic Cannon (Block)
+The core endgame builder. Always available — no ProjectE required.
+
+| Spec | Detail |
+|------|--------|
+| Energy Capacity | 100,000 FE |
+| Placement Cost | 500 FE / block |
+| Placement Speed | 1–256 blocks/tick (adjustable via slider) |
+| Multiplayer | Owner UUID locked; only the owner can operate (OPs allowed) |
+
+**Features:**
+- Insert a schematic and press Start for automated building
+- **AE2 ME Storage Integration**: Connect AE2 cables to pull items from ME network automatically
+- **AE2 Auto-Crafting**: Dispatches craft requests to your CPUs for missing blocks (per-cannon tracking prevents duplicate jobs)
+- **AE2 Cable Power**: Converts AE→FE at up to 10,000 FE/tick
+- **Chest Integration**: Extracts items from adjacent chests
+- **Storage Mode Toggle**: AE2+Chest / AE2 Only / Chest Only
+- **Replace Modes**: Don't Replace Solid / Solid→Solid / Solid→Any / Solid→Air
+- **Block Entity Protection**: Prevents overwriting chests and other block entities
+- **Skip Missing Blocks**: Continue placement even when out of stock
+- **Schematic Reuse**: Option to keep the schematic after completion
+
+---
+
+#### 🌌 EMC Schematic Cannon (Block, requires ProjectE)
+A premium variant of the Enhanced cannon that adds EMC-based block synthesis.
+
+| Spec | Detail |
+|------|--------|
+| Registration | Auto-registered only when ProjectE is installed |
+| Added Features | EMC fuel slot / EMC transmutation / Removal-to-EMC mode |
+| GUI | EMC ON/OFF toggle, player EMC display, fuel slot icon |
+
+**EMC features:**
+- **EMC Transmutation**: Synthesizes missing blocks on the fly by consuming EMC
+- **EMC Fuel Slot**: Convert items to internal EMC buffer (Ctrl+click to route items directly)
+- **Removal Mode EMC**: Converts EMC-valued blocks to EMC during filler removal; non-EMC items go to storage
+
+---
+
+#### 🪄 Air Placement Wand (Item)
+A wand that consumes FE energy to place Frame Blocks in mid-air.
+
+| Spec | Detail |
+|------|--------|
+| Energy Capacity | 400,000 FE |
+| Placement Cost | 1,000 FE / block |
+| Max Placements | 400 (at full charge) |
+| Placement Distance | 1–15 blocks (default: 5) |
+
+**Controls:**
+| Input | Action |
+|-------|--------|
+| Right-click (air) | Place Frame Block at set distance in look direction |
+| Right-click (block face) | Place Frame Block adjacent to clicked face |
+| Shift + Right-click | Remove all Frame Blocks placed by this wand |
+| Shift + Scroll | Adjust placement distance (1–15 blocks) |
+| Shift + Middle Click | Reset distance to default (5) |
+
+- Energy bar displayed on item (red → green gradient)
+- No energy cost in Creative mode
+- Placed block positions are stored in item data for bulk removal
+
+---
+
+#### 📋 Range Board (Item)
+A tool for defining 3D ranges by specifying two corner points. Used with Filler Mode and Removal Mode.
+
+| Spec | Detail |
+|------|--------|
+| Raycast Distance | Up to 64 blocks |
+| Modes | 3 (Normal / Edit Pos1 / Edit Pos2) |
+
+**Controls:**
+| Input | Action |
+|-------|--------|
+| Right-click (block) | Set coordinate (Normal mode: alternates Pos1→Pos2) |
+| Right-click (air) | Raycast up to 64 blocks to set coordinate |
+| Shift + Right-click | Clear coordinates (target depends on mode) |
+| Alt + Scroll | Toggle mode (Normal ↔ Edit) |
+| Shift + Scroll (Edit mode) | Switch edit target (Pos1 / Pos2) |
+
+---
+
+#### 🧱 Frame Block (Block)
+A transparent scaffolding block placed by the Air Placement Wand.
+
+| Spec | Detail |
+|------|--------|
+| Hardness | 0.0 (instant break by hand) |
+| Light Transmission | Yes (propagates skylight) |
+| Suffocation | No |
+| Sound | Scaffolding |
+| Piston | Destroyed when pushed |
+
+- Supports placement of torches and redstone
+- Does not block vision — fully transparent
+- Used as temporary scaffolding for construction
+
+---
+
+### 🔧 Filler Mode
+
+Insert a Range Board into the schematic slot to switch to **Filler Mode** and run the following patterns over the selected volume:
+
+| Mode | Description |
+|------|-------------|
+| Fill | Fill air blocks within range with specified block |
+| Complete Erase | Replace all blocks within range with air |
+| Removal | Remove blocks and convert to EMC or insert into storage |
+| Wall | Create only the outer walls of the range |
+| Tower | Create pillars within the range |
+| Box | Create the outer shell (6 faces) of the range |
+| Circle Wall | Create a cylindrical wall within the range |
+
+### 🔧 Build
+
+```bash
+gradlew.bat build
+```
+
+Output: `build/libs/advancedschematicannon-x.x.x.jar`
+
+---
+
+### 🛠 Technology Stack / 技術スタック
+- **Platform**: [NeoForge](https://neoforged.net/) 21.1.168+ (Minecraft 1.21.1)
+- **Building Engine**: [Create](https://modrinth.com/mod/create) Schematic API (data components, structure NBT)
+- **Storage / Auto-Crafting**: [Applied Energistics 2](https://modrinth.com/mod/ae2) Grid Node + Crafting Service integration
+- **EMC System (optional)**: [ProjectE](https://www.curseforge.com/minecraft/mc-mods/projecte) IEMCProxy / ITransmutationProxy via runtime bridge
+- **Recipe Viewer**: [JEI](https://modrinth.com/mod/jei) Plugin Support
+
+### 📝 Release Notes / リリースノート
+See [`RELEASE_NOTES_v1.1.2.md`](RELEASE_NOTES_v1.1.2.md) and [`CHANGELOG.md`](CHANGELOG.md).
+
+### 👤 Author / 作者
 **BelugaLab**
 
-### 🔢 Current Version / 現行バージョン
-**1.1.2** (Minecraft 1.21.1 / NeoForge 21.1.168+)
+### 📄 License / ライセンス
+[MIT License](LICENSE)
